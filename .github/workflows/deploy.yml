@@ -12,20 +12,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # ── Install Nix ──────────────────────────────────────────────────────────
-      - uses: cachix/install-nix-action@v27
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
-          extra_nix_config: |
-            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ghc-wasm-meta.cachix.org-1:z0NiPE9gkMg9WZzBc/+qX5Lni3KAjkGg1M3cLicNxw8=
-            substituters = https://cache.nixos.org https://ghc-wasm-meta.cachix.org
-
-      # ── Install GHC WASM toolchain via Nix ──────────────────────────────────
+      # ── Install GHC WASM toolchain ───────────────────────────────────────────
       - name: Install ghc-wasm-meta
         run: |
-          nix profile install "gitlab:haskell/ghc-wasm-meta?host=gitlab.haskell.org#wasm32-wasi-cabal"
-          nix profile install "gitlab:haskell/ghc-wasm-meta?host=gitlab.haskell.org#wasm32-wasi-ghc-9.10"
-          echo "$HOME/.nix-profile/bin" >> $GITHUB_PATH
+          curl -sSfL "https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta/-/raw/master/bootstrap.sh" -o /tmp/bootstrap.sh
+          bash /tmp/bootstrap.sh
+          echo "$HOME/.ghc-wasm/bin" >> $GITHUB_PATH
 
       - name: Verify wasm32 GHC
         run: wasm32-wasi-ghc --version
@@ -34,7 +26,9 @@ jobs:
       - name: Cache cabal store
         uses: actions/cache@v4
         with:
-          path: ~/.ghc-wasm/.cabal/store
+          path: |
+            ~/.cabal/store
+            ~/.ghc-wasm/.cabal/store
           key: wasm-cabal-${{ hashFiles('regexp-dfa.cabal') }}
           restore-keys: wasm-cabal-
 
