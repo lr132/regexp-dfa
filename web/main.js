@@ -32,11 +32,10 @@ async function init() {
 
     let instance; // define before WASI so stubs can reference it
 
+    const WasiExit = class extends Error { constructor(c) { super("exit(" + c + ")"); this.code = c; } };
+
     const wasi = {
-      proc_exit: (code) => {
-        if (code !== 0) throw new Error("proc_exit(" + code + ")");
-        // else do nothing for normal exit
-      },
+      proc_exit: (code) => { throw new WasiExit(code); },
 
       fd_write: (fd, iovs, iovs_len, nwritten) => {
         const mem = new DataView(instance.exports.memory.buffer);
@@ -117,10 +116,13 @@ async function init() {
     Object.assign(exports_ref, instance.exports);
     hs = instance.exports;
 
-    // Initialize Haskell RTS
     if (hs._start) {
-      const startResult = hs._start();
-      if (startResult instanceof Promise) await startResult;
+      try {
+        const r = hs._start();
+        if (r instanceof Promise) await r;
+      } catch (e) {
+        if (!(e instanceof WasiExit) || e.code !== 0) throw e;
+      }
     }
 
     vizInstance = await Viz.instance();
