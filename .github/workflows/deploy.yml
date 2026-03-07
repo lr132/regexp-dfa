@@ -17,12 +17,12 @@ jobs:
         run: |
           curl -sSfL "https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta/-/raw/master/bootstrap.sh" -o /tmp/bootstrap.sh
           bash /tmp/bootstrap.sh
-          source ~/.ghc-wasm/env
-          cat ~/.ghc-wasm/env >> $GITHUB_ENV
-          echo "$(dirname $(which wasm32-wasi-ghc 2>/dev/null || find ~/.ghc-wasm -name 'wasm32-wasi-ghc' -type f | head -1))" >> $GITHUB_PATH
 
       - name: Verify wasm32 GHC
-        run: wasm32-wasi-ghc --version
+        run: |
+          source ~/.ghc-wasm/env
+          wasm32-wasi-ghc --version
+          wasm32-wasi-cabal --version
 
       # ── Cache cabal store ────────────────────────────────────────────────────
       - name: Cache cabal store
@@ -37,12 +37,14 @@ jobs:
       # ── Build WASM binary ────────────────────────────────────────────────────
       - name: Build regexp-dfa-web (WASM)
         run: |
+          source ~/.ghc-wasm/env
           wasm32-wasi-cabal update
           wasm32-wasi-cabal build exe:regexp-dfa-web
 
       # ── Post-link: extract JS FFI glue + .wasm ───────────────────────────────
       - name: Post-link and collect artefacts
         run: |
+          source ~/.ghc-wasm/env
           WASM_BIN=$(wasm32-wasi-cabal list-bin exe:regexp-dfa-web)
           mkdir -p dist
           $(wasm32-wasi-ghc --print-libdir)/post-link.mjs \
