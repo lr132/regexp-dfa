@@ -1,0 +1,63 @@
+name: Build WASM & Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Install GHC WASM toolchain ───────────────────────────────────────────
+      - name: Install ghc-wasm-meta
+        run: |
+          curl -L https://gitlab.haskell.org/haskell/ghc-wasm-meta/-/raw/master/bootstrap.sh | sh
+          echo "$HOME/.ghc-wasm/bin" >> $GITHUB_PATH
+
+      - name: Verify wasm32 GHC
+        run: wasm32-wasi-ghc --version
+
+      # ── Cache cabal store ────────────────────────────────────────────────────
+      - name: Cache cabal store
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cabal/store
+            ~/.ghc-wasm/.cabal/store
+          key: wasm-cabal-${{ hashFiles('regexp-dfa.cabal') }}
+          restore-keys: wasm-cabal-
+
+      # ── Build WASM binary ────────────────────────────────────────────────────
+      - name: Build regexp-dfa-web (WASM)
+        run: |
+          wasm32-wasi-cabal update
+          wasm32-wasi-cabal build exe:regexp-dfa-web
+
+      # ── Post-link: extract JS FFI glue + .wasm ───────────────────────────────
+      - name: Post-link and collect artifacts
+        run: |
+          WASM_BIN=$(wasm32-wasi-cabal list-bin exe:regexp-dfa-web)
+          mkdir -p dist
+          # Run the post-linker to produce main.wasm + ghc_wasm_jsffi.js
+          $(wasm32-wasi-ghc --print-libdir)/post-link.mjs \
+            --input "$WASM_BIN" \
+            --output dist/main.wasm
+          cp web/index.html dist/
+          cp web/style.css  dist/
+          cp web/main.js    dist/
+          # ghc_wasm_jsffi.js is emitted alongside main.wasm by post-link.mjs
+          ls -lh dist/
+
+      # ── Deploy to Cloudflare Pages ───────────────────────────────────────────
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: regexp-dfa
+          directory: dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

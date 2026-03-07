@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RegexpDFA</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>RegexpDFA</h1>
+      <p class="subtitle">Regexp &rarr; DFA converter &mdash; compiled from Haskell to WebAssembly</p>
+    </header>
+
+    <section class="input-section">
+      <label for="regex-input">Regular Expression</label>
+      <div class="input-row">
+        <input id="regex-input" type="text" placeholder="e.g. (AB*|C)*" spellcheck="false" autocomplete="off" />
+        <button id="compile-btn">Compile</button>
+      </div>
+      <p class="hint">Uppercase letters only. Operators: <code>|</code> &nbsp;<code>*</code> &nbsp;<code>+</code> &nbsp;<code>()</code> &nbsp;<code>.</code> &nbsp;<code>.?</code> &nbsp;<code>e</code> (empty)</p>
+    </section>
+
+    <div id="status" class="status hidden"></div>
+
+    <section id="results" class="hidden">
+      <div class="meta-row">
+        <span id="meta-states"></span>
+        <span id="meta-alpha"></span>
+        <span id="meta-accept"></span>
+      </div>
+
+      <div class="examples-row" id="examples-row"></div>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="graph">Graph</button>
+        <button class="tab-btn" data-tab="table">Table</button>
+        <button class="tab-btn" data-tab="dot">DOT source</button>
+      </div>
+
+      <div id="tab-graph" class="tab-panel">
+        <div id="graph-container"></div>
+      </div>
+      <div id="tab-table" class="tab-panel hidden">
+        <pre id="table-pre"></pre>
+      </div>
+      <div id="tab-dot" class="tab-panel hidden">
+        <pre id="dot-pre"></pre>
+        <button id="copy-dot-btn">Copy DOT</button>
+      </div>
+
+      <div class="test-section">
+        <label for="test-input">Test a string</label>
+        <div class="input-row">
+          <input id="test-input" type="text" placeholder='e.g. ABABC' spellcheck="false" autocomplete="off" />
+          <button id="test-btn">Test</button>
+        </div>
+        <div id="test-result" class="test-result hidden"></div>
+      </div>
+
+      <div class="export-row">
+        <button id="export-btn">Export .df file</button>
+      </div>
+    </section>
+
+    <div id="loading" class="loading hidden">
+      <div class="spinner"></div>
+      <p>Loading Haskell WASM runtime&hellip;</p>
+    </div>
+  </div>
+
+  <!-- Viz.js for DOT rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/@viz-js/viz@3/lib/viz-standalone.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
