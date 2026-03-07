@@ -117,25 +117,20 @@ async function init() {
     Object.assign(exports_ref, instance.exports);
     hs = instance.exports;
 
-    if (hs.rts_schedulerLoop) {
-      console.log("calling rts_schedulerLoop");
-      const r = hs.rts_schedulerLoop();
-      console.log("rts_schedulerLoop returned:", r);
-      if (r instanceof Promise) await r;
+    if (hs.hs_init) {
+      hs.hs_init(0, 0);
     } else if (hs._start) {
-      console.log("calling _start");
       try {
         const r = hs._start();
-        console.log("_start returned:", r);
         if (r instanceof Promise) await r;
       } catch (e) {
-        console.log("_start threw:", e);
         if (!(e instanceof WasiExit) || e.code !== 0) throw e;
       }
-    } else {
-      console.log("no rts_schedulerLoop or _start");
     }
-    console.log("hs_compile:", typeof hs.hs_compile);
+    if (hs.rts_schedulerLoop) {
+      const r = hs.rts_schedulerLoop();
+      if (r instanceof Promise) await r;
+    }
 
     vizInstance = await Viz.instance();
   } catch (e) {
