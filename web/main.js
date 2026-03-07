@@ -112,21 +112,30 @@ async function init() {
       fetch("./main.wasm"),
       { ghc_wasm_jsffi: jsffiImports, wasi_snapshot_preview1: wasi }
     ));
+    console.log("wasm exports:", Object.keys(instance.exports));
 
     Object.assign(exports_ref, instance.exports);
     hs = instance.exports;
 
     if (hs.rts_schedulerLoop) {
+      console.log("calling rts_schedulerLoop");
       const r = hs.rts_schedulerLoop();
+      console.log("rts_schedulerLoop returned:", r);
       if (r instanceof Promise) await r;
     } else if (hs._start) {
+      console.log("calling _start");
       try {
         const r = hs._start();
+        console.log("_start returned:", r);
         if (r instanceof Promise) await r;
       } catch (e) {
+        console.log("_start threw:", e);
         if (!(e instanceof WasiExit) || e.code !== 0) throw e;
       }
+    } else {
+      console.log("no rts_schedulerLoop or _start");
     }
+    console.log("hs_compile:", typeof hs.hs_compile);
 
     vizInstance = await Viz.instance();
   } catch (e) {
