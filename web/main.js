@@ -31,7 +31,7 @@ async function init() {
     const jsffiImports = makeJsffiImports(exports_ref);
 
     const wasi = {
-      proc_exit:            (code) => { throw new Error("proc_exit(" + code + ")"); },
+      proc_exit:            (code) => { if (code !== 0) throw new Error("proc_exit(" + code + ")"); },
       fd_write:             (fd, iovs, iovs_len, nwritten) => {
         const mem = new DataView(instance.exports.memory.buffer);
         let written = 0;
@@ -108,7 +108,7 @@ async function init() {
       { ghc_wasm_jsffi: jsffiImports, wasi_snapshot_preview1: wasi }
     ));
     Object.assign(exports_ref, instance.exports);
-    instance.exports._start();
+    try { instance.exports._start(); } catch (_) {}
     hs = instance.exports;
 
     vizInstance = await Viz.instance();
