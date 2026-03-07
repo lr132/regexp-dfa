@@ -113,6 +113,7 @@ async function init() {
       { ghc_wasm_jsffi: jsffiImports, wasi_snapshot_preview1: wasi }
     ));
     console.log("wasm exports:", Object.keys(instance.exports));
+    console.log("jsffi imports:", Object.keys(jsffiImports));
 
     Object.assign(exports_ref, instance.exports);
     hs = instance.exports;
