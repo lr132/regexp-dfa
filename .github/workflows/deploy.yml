@@ -49,12 +49,18 @@ jobs:
         run: |
           source ~/.ghc-wasm/env
           WASM_BIN=$(wasm32-wasi-cabal list-bin exe:regexp-dfa-web)
+          LIBDIR=$(wasm32-wasi-ghc --print-libdir)
           mkdir -p dist
-          $(wasm32-wasi-ghc --print-libdir)/post-link.mjs \
-            --input "$WASM_BIN" \
-            --output dist/main.wasm
-          # post-link.mjs may emit ghc_wasm_jsffi.js to cwd or input dir — find and copy it
-          find . -name "ghc_wasm_jsffi.js" ! -path "./dist/*" | head -1 | xargs -I{} cp {} dist/
+          # Run post-linker (initialises wasm imports/exports)
+          node "$LIBDIR/post-link.mjs" --input "$WASM_BIN" --output dist/main.wasm
+          echo "post-link output size: $(wc -c < dist/main.wasm) bytes"
+          # If post-link produced a stub (<100KB), use the raw binary instead
+          if [ $(wc -c < dist/main.wasm) -lt 102400 ]; then
+            echo "post-link output too small, using raw binary"
+            cp "$WASM_BIN" dist/main.wasm
+          fi
+          # Copy the JSFFI runtime JS from GHC lib dir
+          cp "$LIBDIR/ghc_wasm_jsffi.js" dist/
           cp web/index.html dist/
           cp web/style.css  dist/
           cp web/main.js    dist/
