@@ -26,13 +26,68 @@ async function init() {
   compileBtn.disabled = true;
 
   try {
-    // Load GHC WASM runtime. The build outputs main.wasm + ghc_wasm_jsffi.js
-    const { default: initGhc } = await import("./ghc_wasm_jsffi.js");
-    const wasmModule = await initGhc({ module_or_path: "./main.wasm" });
-    await wasmModule.exports.hs_init();
-    hs = wasmModule.exports;
+    const { default: makeJsffiImports } = await import("./ghc_wasm_jsffi.js");
+    const exports_ref = {};
+    const jsffiImports = makeJsffiImports(exports_ref);
 
-    // Initialise Viz.js
+    const wasi = {
+      proc_exit:            (code) => { throw new Error("proc_exit(" + code + ")"); },
+      fd_write:             (fd, iovs, iovs_len, nwritten) => {
+        const mem = new DataView(instance.exports.memory.buffer);
+        let written = 0;
+        for (let i = 0; i < iovs_len; i++) {
+          const base = mem.getUint32(iovs + i * 8,     true);
+          const len  = mem.getUint32(iovs + i * 8 + 4, true);
+          const bytes = new Uint8Array(instance.exports.memory.buffer, base, len);
+          console.log(new TextDecoder().decode(bytes));
+          written += len;
+        }
+        mem.setUint32(nwritten, written, true);
+        return 0;
+      },
+      fd_read:              () => 8,
+      fd_close:             () => 0,
+      fd_seek:              () => 0,
+      fd_fdstat_get:        () => 0,
+      environ_get:          () => 0,
+      environ_sizes_get:    (count_ptr, buf_size_ptr) => {
+        const mem = new DataView(instance.exports.memory.buffer);
+        mem.setUint32(count_ptr,    0, true);
+        mem.setUint32(buf_size_ptr, 0, true);
+        return 0;
+      },
+      args_get:             () => 0,
+      args_sizes_get:       (argc_ptr, argv_buf_size_ptr) => {
+        const mem = new DataView(instance.exports.memory.buffer);
+        mem.setUint32(argc_ptr,          0, true);
+        mem.setUint32(argv_buf_size_ptr, 0, true);
+        return 0;
+      },
+      clock_time_get:       (id, precision, time_ptr) => {
+        const mem = new DataView(instance.exports.memory.buffer);
+        mem.setBigUint64(time_ptr, BigInt(Date.now()) * 1_000_000n, true);
+        return 0;
+      },
+      random_get:           (buf, buf_len) => {
+        crypto.getRandomValues(new Uint8Array(instance.exports.memory.buffer, buf, buf_len));
+        return 0;
+      },
+      fd_prestat_get:       () => 8,
+      fd_prestat_dir_name:  () => 8,
+      path_open:            () => 8,
+      sched_yield:          () => 0,
+      poll_oneoff:          () => 52,
+    };
+
+    let instance;
+    ({ instance } = await WebAssembly.instantiateStreaming(
+      fetch("./main.wasm"),
+      { ghc_wasm_jsffi: jsffiImports, wasi_snapshot_preview1: wasi }
+    ));
+    Object.assign(exports_ref, instance.exports);
+    await instance.exports.hs_init();
+    hs = instance.exports;
+
     vizInstance = await Viz.instance();
   } catch (e) {
     showStatus("Failed to load WASM runtime: " + e.message, "error");
