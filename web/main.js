@@ -116,7 +116,10 @@ async function init() {
     Object.assign(exports_ref, instance.exports);
     hs = instance.exports;
 
-    if (hs._start) {
+    if (hs.rts_schedulerLoop) {
+      const r = hs.rts_schedulerLoop();
+      if (r instanceof Promise) await r;
+    } else if (hs._start) {
       try {
         const r = hs._start();
         if (r instanceof Promise) await r;

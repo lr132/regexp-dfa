@@ -1,6 +1,7 @@
 module Main where
 
 import GHC.Wasm.Prim
+import Control.Concurrent.MVar (newEmptyMVar, takeMVar)
 import Types
 import Parser      (parseRegExp)
 import Unparser    (unparseRegExp)
@@ -12,7 +13,7 @@ import Matcher     (matchesRegex)
 import qualified Data.Map.Strict as M
 
 main :: IO ()
-main = return ()
+main = newEmptyMVar >>= takeMVar
 
 -- Compile a regex and return a JSON object with all relevant info.
 -- On error returns: {"error":"..."}
