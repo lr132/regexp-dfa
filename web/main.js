@@ -146,14 +146,14 @@ async function init() {
 compileBtn.addEventListener("click", doCompile);
 regexInput.addEventListener("keydown", (e) => { if (e.key === "Enter") doCompile(); });
 
-function doCompile() {
+async function doCompile() {
   if (!hs) { showStatus("Runtime not ready yet.", "error"); return; }
   const input = regexInput.value.trim();
   if (!input) return;
 
   try {
     const inputHandle = jsval.newJSVal(input);
-    const outputHandle = hs.hs_compile(inputHandle);
+    const outputHandle = await hs.hs_compile(inputHandle);
     jsval.freeJSVal(inputHandle);
     const raw = jsval.getJSVal(outputHandle);
     jsval.freeJSVal(outputHandle);
@@ -224,7 +224,7 @@ function showTab(name) {
 // ── Test string ───────────────────────────────────────────────────────────────
 testBtn.addEventListener("click", doTest);
 testInput.addEventListener("keydown", (e) => { if (e.key === "Enter") doTest(); });
-function doTest() {
+async function doTest() {
   if (!hs) return;
   const str = testInput.value;
   const regex = regexInput.value.trim();
@@ -233,7 +233,7 @@ function doTest() {
   try {
     const strHandle   = jsval.newJSVal(str);
     const regexHandle = jsval.newJSVal(regex);
-    const outputHandle = hs.hs_test(strHandle, regexHandle);
+    const outputHandle = await hs.hs_test(strHandle, regexHandle);
     jsval.freeJSVal(strHandle);
     jsval.freeJSVal(regexHandle);
     const raw = jsval.getJSVal(outputHandle);
