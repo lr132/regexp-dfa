@@ -53,6 +53,8 @@ jobs:
           $(wasm32-wasi-ghc --print-libdir)/post-link.mjs \
             --input "$WASM_BIN" \
             --output dist/main.wasm
+          # post-link.mjs may emit ghc_wasm_jsffi.js to cwd or input dir — find and copy it
+          find . -name "ghc_wasm_jsffi.js" ! -path "./dist/*" | head -1 | xargs -I{} cp {} dist/
           cp web/index.html dist/
           cp web/style.css  dist/
           cp web/main.js    dist/
