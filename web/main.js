@@ -108,7 +108,6 @@ async function init() {
       { ghc_wasm_jsffi: jsffiImports, wasi_snapshot_preview1: wasi }
     ));
     Object.assign(exports_ref, instance.exports);
-    await instance.exports._initialize();
     hs = instance.exports;
 
     vizInstance = await Viz.instance();
