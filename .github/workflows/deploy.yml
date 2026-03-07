@@ -51,16 +51,10 @@ jobs:
           WASM_BIN=$(wasm32-wasi-cabal list-bin exe:regexp-dfa-web)
           LIBDIR=$(wasm32-wasi-ghc --print-libdir)
           mkdir -p dist
-          # Run post-linker from dist/ so ghc_wasm_jsffi.js lands there
-          cd dist
-          node "$LIBDIR/post-link.mjs" --input "$WASM_BIN" --output main.wasm
-          echo "post-link output size: $(wc -c < main.wasm) bytes"
-          # If post-link produced a stub (<100KB), use the raw binary instead
-          if [ $(wc -c < main.wasm) -lt 102400 ]; then
-            echo "post-link output too small, using raw binary"
-            cp "$WASM_BIN" main.wasm
-          fi
-          cd ..
+          # post-link.mjs --output produces the JS glue, not the wasm
+          node "$LIBDIR/post-link.mjs" --input "$WASM_BIN" --output dist/ghc_wasm_jsffi.js
+          # Copy the wasm binary directly
+          cp "$WASM_BIN" dist/main.wasm
           cp web/index.html dist/
           cp web/style.css  dist/
           cp web/main.js    dist/
