@@ -17,7 +17,9 @@ jobs:
         run: |
           curl -sSfL "https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta/-/raw/master/bootstrap.sh" -o /tmp/bootstrap.sh
           bash /tmp/bootstrap.sh
-          echo "$HOME/.ghc-wasm/bin" >> $GITHUB_PATH
+          source ~/.ghc-wasm/env
+          cat ~/.ghc-wasm/env >> $GITHUB_ENV
+          echo "$(dirname $(which wasm32-wasi-ghc 2>/dev/null || find ~/.ghc-wasm -name 'wasm32-wasi-ghc' -type f | head -1))" >> $GITHUB_PATH
 
       - name: Verify wasm32 GHC
         run: wasm32-wasi-ghc --version
