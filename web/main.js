@@ -127,11 +127,6 @@ async function init() {
         if (!(e instanceof WasiExit) || e.code !== 0) throw e;
       }
     }
-    if (hs.rts_schedulerLoop) {
-      const r = hs.rts_schedulerLoop();
-      if (r instanceof Promise) await r;
-    }
-
     vizInstance = await Viz.instance();
   } catch (e) {
     showStatus("Failed to load WASM runtime: " + e.message, "error");
