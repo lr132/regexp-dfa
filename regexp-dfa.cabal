@@ -37,6 +37,6 @@ executable regexp-dfa-web
   hs-source-dirs: web
   build-depends:  regexp-dfa-lib, ghc-experimental
   ghc-options:    -package ghc-experimental
-                  -optl-Wl,--export=hs_init
+                  -optl-mexec-model=reactor
   if !arch(wasm32)
     buildable: False
