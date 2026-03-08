@@ -151,7 +151,7 @@ regexInput.addEventListener("keydown", (e) => { if (e.key === "Enter") doCompile
 async function doCompile() {
   if (!hs) { showStatus("Runtime not ready yet.", "error"); return; }
   const input = regexInput.value.trim();
-  if (!input) return;
+  if (!input) { showStatus("Error: Cannot be empty", "error"); return; }
 
   try {
     const raw = await hs.hs_compile(input);
