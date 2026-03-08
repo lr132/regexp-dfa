@@ -157,10 +157,8 @@ async function doCompile() {
 
   try {
     const inputHandle = jsval.newJSVal(input);
-    const outputHandle = await hs.hs_compile(inputHandle);
+    const raw = await hs.hs_compile(inputHandle);
     jsval.freeJSVal(inputHandle);
-    const raw = jsval.getJSVal(outputHandle);
-    jsval.freeJSVal(outputHandle);
     const data = JSON.parse(raw);
 
     if (data.error) {
@@ -237,11 +235,9 @@ async function doTest() {
   try {
     const strHandle   = jsval.newJSVal(str);
     const regexHandle = jsval.newJSVal(regex);
-    const outputHandle = await hs.hs_test(strHandle, regexHandle);
+    const raw = await hs.hs_test(strHandle, regexHandle);
     jsval.freeJSVal(strHandle);
     jsval.freeJSVal(regexHandle);
-    const raw = jsval.getJSVal(outputHandle);
-    jsval.freeJSVal(outputHandle);
     const data = JSON.parse(raw);
 
     testResult.classList.remove("hidden", "match", "no-match");
