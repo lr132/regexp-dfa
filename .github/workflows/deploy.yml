@@ -55,9 +55,10 @@ jobs:
           node "$LIBDIR/post-link.mjs" --input "$WASM_BIN" --output dist/ghc_wasm_jsffi.js
           # Copy the wasm binary directly
           cp "$WASM_BIN" dist/main.wasm
-          cp web/index.html dist/
-          cp web/style.css  dist/
-          cp web/main.js    dist/
+          cp web/index.html  dist/
+          cp web/style.css   dist/
+          cp web/main.js     dist/
+          cp web/favicon.ico dist/
           ls -lh dist/
 
       # ── Deploy to Cloudflare Pages ───────────────────────────────────────────
