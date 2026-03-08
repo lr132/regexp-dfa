@@ -123,6 +123,9 @@ async function init() {
     if (hs._initialize) {
       const r = hs._initialize();
       if (r instanceof Promise) await r;
+    }
+    if (hs.hs_init) {
+      hs.hs_init(0, 0);
     } else if (hs._start) {
       try {
         const r = hs._start();
