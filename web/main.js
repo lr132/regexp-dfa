@@ -227,11 +227,10 @@ testInput.addEventListener("keydown", (e) => { if (e.key === "Enter") doTest(); 
 async function doTest() {
   if (!hs) return;
   const str = testInput.value;
-  const regex = regexInput.value.trim();
-  if (!regex) return;
+  if (!lastRegexp) return;
 
   try {
-    const raw = await hs.hs_test(str, regex);
+    const raw = await hs.hs_test(str, lastRegexp);
     const data = JSON.parse(raw);
 
     testResult.classList.remove("hidden", "match", "no-match");
