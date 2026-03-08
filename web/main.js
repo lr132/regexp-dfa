@@ -164,6 +164,8 @@ async function doCompile() {
     }
 
     hideStatus();
+    testInput.value = "";
+    testResult.className = "hidden";
     lastDot = data.dot;
     lastRegexp = data.regexp;
 
