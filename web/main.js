@@ -1,7 +1,6 @@
 /* main.js — GHC WASM glue + UI logic */
 
 let hs = null;        // Haskell WASM exports
-let jsval = null;     // JSFFI JSVal manager (newJSVal / getJSVal / freeJSVal)
 let vizInstance = null;
 let lastDot = "";
 let lastRegexp = "";
@@ -118,7 +117,6 @@ async function init() {
 
     Object.assign(exports_ref, instance.exports);
     hs = instance.exports;
-    jsval = jsffiImports;
 
     if (hs._initialize) {
       const r = hs._initialize();
@@ -156,9 +154,7 @@ async function doCompile() {
   if (!input) return;
 
   try {
-    const inputHandle = jsval.newJSVal(input);
-    const raw = await hs.hs_compile(inputHandle);
-    jsval.freeJSVal(inputHandle);
+    const raw = await hs.hs_compile(input);
     const data = JSON.parse(raw);
 
     if (data.error) {
@@ -233,11 +229,7 @@ async function doTest() {
   if (!regex) return;
 
   try {
-    const strHandle   = jsval.newJSVal(str);
-    const regexHandle = jsval.newJSVal(regex);
-    const raw = await hs.hs_test(strHandle, regexHandle);
-    jsval.freeJSVal(strHandle);
-    jsval.freeJSVal(regexHandle);
+    const raw = await hs.hs_test(str, regex);
     const data = JSON.parse(raw);
 
     testResult.classList.remove("hidden", "match", "no-match");
